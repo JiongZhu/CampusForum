@@ -1,0 +1,94 @@
+<!--header fragment-->
+<div th:fragment="header" xmlns:th="http://www.thymeleaf.org">
+<div class="header">
+    <div class="main">
+        <a class="logo" th:href="@{/index}" title="CCZU CAMPUS FORUM">常青藤社区</a>
+        <div class="nav">
+            <a class="nav-this" th:href="@{/index}">
+                <i class="iconfont icon-svgmoban53"></i>交流
+            </a>
+            <a class="nav-this" th:href="@{/label}">
+                <i class="iconfont icon-chengshi"></i>板块
+            </a>
+            <a class="nav-this" th:href="@{/chat}">
+                <i class="iconfont icon-room"></i>聊天室
+            </a>
+        </div>
+
+        <div class="nav-user">
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/layui/layui.js}"></script>
+<script th:src="@{/js/jquery-1.11.2.min.js}"></script>
+<script th:src="@{/js/jquery.cookie.js}"></script>
+<script th:src="@{/js/quark_api.js}"></script>
+<script th:src="@{/js/sockjs.min.js}"></script>
+<script th:src="@{/js/stomp.min.js}"></script>
+<script>
+    //获取用户信息渲染页面
+    var htm = "";
+    $.get(quark_getUser_api+ getCookie(),function (data) {
+        if (data.status == 200){
+            var count = data.data.messagecount;
+            if (count!=0){
+                htm+="<a class='nav-message' href='../user/message' title=''>"+count+"</a>";
+            }
+            htm +="<a class='avatar' href='/user/home?id="+data.data.user.id+"'>"+
+                "<img src='"+data.data.user.icon+"'>"+
+                "<cite>"+data.data.user.username+"</cite>"+
+                "</a>"+
+                "<div class='nav'>"+
+                "<a href='/user/set'><i class='iconfont icon-shezhi'></i>设置</a>"+
+                "<a href='javascript:void(0)' onclick='logout()'><i class='iconfont icon-tuichu' style='top: 0; font-size: 22px;'></i>退了</a>"+
+                "</div>";
+
+            connectWebSocket(data.data.user.id);
+        }else{
+            htm ="<a class='unlogin' href='#'><i class='iconfont icon-touxiang'></i></a>"+
+                "<span><a href='/user/login'>登入</a><a href='/user/register'>注册</a></span>";
+        }
+
+        $(".nav-user").append(htm);
+    });
+
+        //登出操作
+        function logout() {
+
+            $.post(quark_logout_api,{
+                token: getCookie()
+            },function (obj) {
+               if (obj.status == 200){
+                   deleteCookie();
+                   location.href = "/index";
+               }else{
+                   layer.msg(obj.error,{icon:5});
+               }
+            });
+        }
+
+        //连接服务器webSocket操作
+        function connectWebSocket(id) {
+            var socket = new SockJS(quark_webSocket_api, undefined, {protocols_whitelist: ['websocket']});
+            var stompClient  = Stomp.over(socket);
+
+            //接收到广播推送
+            stompClient.connect({},function (frame) {
+                stompClient.subscribe('/topic/all', function(message){
+                });
+
+                //接收到一对一推送
+                stompClient.subscribe('/user/' + id + '/message', function(message){
+                    if($('.nav-message').length>0) {
+                        $('.nav-message').html(JSON.parse(message.body).notice);
+                    }else{
+                        $(".nav-user").prepend("<a class='nav-message' href='../user/message'>"+JSON.parse(message.body).notice+"</a>");
+                    }
+                });
+
+            })
+        }
+
+</script>
+</div>

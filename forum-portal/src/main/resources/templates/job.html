@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>常青藤 社区</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" th:href="@{/layui/css/layui.css}">
+    <link rel="stylesheet" th:href="@{/css/global.css}">
+</head>
+<body>
+
+<div th:include="common/header::header"></div>
+
+<div class="main layui-clear">
+    <div class="wrap">
+        <div class="content">
+            <div class="fly-tab fly-tab-index">
+        <span>
+          <a href="/index">全部帖</a>
+           <a href="/index?type=good">精品帖</a>
+           <a href="/index?type=top">置顶帖</a>
+        </span>
+                <form action="/index" method="get" class="fly-search">
+                    <i class="iconfont icon-sousuo"></i>
+                    <input class="layui-input" autocomplete="off" placeholder="搜索内容，回车跳转" type="text"
+                           name="search">
+                </form>
+                <a th:href="@{/posts/add}" class="layui-btn jie-add">发表新帖</a>
+            </div>
+
+            <ul class="fly-list">
+                <script id="posts" type="text/html">
+                    <ul>
+                        {{# layui.each(d.data, function(index, item){ }}
+                        <li class="fly-list-li">
+                            <a href="user/home?id={{item.user.id}}" class="fly-list-avatar">
+                                <img src="{{item.user.icon}}" alt="">
+                            </a>
+                            <h2 class="fly-tip">
+                                <a href="posts/detail?id={{item.id}}">{{ item.title }}</a>
+                                {{ item.top == true ? '<span class="fly-tip-stick">置顶</span>' :'' }}
+                                {{ item.good == true ? '<span class="fly-tip-jing">精帖</span>' : ''}}
+                            </h2>
+                            <p>
+                                <span><a href="user/home?id={{item.user.id}}">{{ item.user.username }}</a></span>
+                                <span>{{item.initTime}} </span>
+                                <span>{{item.label.name}}</span>
+                                <span class="fly-list-hint">
+                                            <i class="iconfont" title="回答">&#xe60c;</i> {{ item.replyCount }}
+                                </span>
+                            </p>
+                        </li>
+                        {{# }); }} {{# if(d.total === 0){ }}
+                        <li class="fly-none">没有任何帖子</li>
+                        {{# } }}
+                    </ul>
+                </script>
+                <div id="postss"></div>
+            </ul>
+            <div id="pager"></div>
+        </div>
+    </div>
+    <div class="edge">
+        <div class="fly-panel hot-bankuai">
+            <h3 class="fly-panel-title">热门板块</h3>
+            <dl>
+                <dd><a th:href="@{/gossip}"><img src="images/chat.png">闲聊</a>
+                </dd>
+                <dd><a th:href="@{/emotional}"><img src="images/emotional.png">情感交流</a>
+                </dd>
+                <dd><a th:href="@{/study}"><img src="images/study.png">学习专区</a>
+                </dd>
+                <dd><a th:href="@{/fashion}"><img src="images/fashion.ico">时尚</a>
+                </dd>
+                <dd><a th:href="@{/job}"><img src="images/job.png">兼职</a>
+                </dd>
+                <dd><a th:href="@{/sales}"><img src="images/sales.ico">二手交易</a>
+                </dd>
+            </dl>
+        </div>
+
+        <div class="fly-panel leifeng-rank">
+            <h3 class="fly-panel-title">近一月新用户 - TOP 12</h3>
+            <dl>
+                <script id="user" type="text/html">
+                    {{# layui.each(d.data, function(index, item){ }}
+                <dd>
+                    <a href="user/home?id={{item[0]}}">
+                        <img src="{{item[2]}}">
+                        <i>{{item[1]}}</i>
+                    </a>
+                </dd>
+                    {{# }); }}
+                </script>
+                <div id="users"></div>
+            </dl>
+        </div>
+        <script id="hot" type="text/html">
+        <dl class="fly-panel fly-list-one">
+            <dt class="fly-panel-title">近一月热门帖子</dt>
+            {{# layui.each(d.data, function(index, item){ }}
+            <dd>
+                <a href="posts/detail?id={{item[0]}}">{{item[1]}}</a>
+                <span><i class="iconfont">&#xe60c;</i> {{item[2]}}</span>
+            </dd>
+            {{# }); }}
+        </dl>
+        </script>
+        <div id="hots"></div>
+    </div>
+
+</div>
+<div th:include="common/footer::footer"></div>
+<script>
+
+    <!--根据url param 翻页获取信息-->
+    function loadPosts(laytpl, laypage, pageNo, renderpager) {
+        var type = $.getUrlParam('type');
+        var search =$.getUrlParam('search');
+        $.get(quark_posts_get_api, {
+            pageNo: pageNo,
+            length: 15,
+            type: type,
+            search: search
+        }, function (data) {
+
+            if (data.status == 500){
+                layer.msg(data.error, {icon: 5});
+                return;
+            }
+            var posts = $("#posts").html();
+            laytpl(posts).render(data, function (html) {
+                $("#postss").html(html);
+            });
+
+            if (!renderpager) return;
+
+            laypage.render({
+                elem: 'pager'
+                ,limit:data.total
+                , count: data.pageSize //总页数
+                , jump: function (obj, first) {
+                    //得到了当前页，用于向服务端请求对应数据
+                    if (!first) {
+                        loadPosts(laytpl, laypage, obj.curr, false);
+                        $('body').prop('scrollTop','0');
+                    }
+                }
+            });
+        });
+    }
+
+    layui.use(['laypage', 'laytpl'], function () {
+        var laytpl = layui.laytpl;
+        var laypage = layui.laypage;
+        loadPosts(laytpl, laypage, 1, true);
+
+        //获取新用户
+        $.get(quark_rank_users_api,function (data) {
+            var tpl = $("#user").html();
+            laytpl(tpl).render(data,function (html) {
+                $("#users").html(html);
+            });
+        });
+
+        //获取热门帖子
+        $.get(quark_rank_posts_api,function (data) {
+            var tpl = $("#hot").html();
+            laytpl(tpl).render(data,function (html) {
+                $("#hots").html(html);
+            });
+        });
+    });
+
+
+</script>
+
+</body>
+</html>
