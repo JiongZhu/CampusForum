@@ -6,21 +6,21 @@
 
 ​												**论坛门户总体功能结构**
 
-![img](http://otmfpj0s2.bkt.clouddn.com/campusForum/1.png)
+![mark](http://cdn.zhuj.top/blog/20190222/AcPINVz7xu00.png?imageslim)
 
 ​												**论坛管理总体功能结构**
 
-![img](http://otmfpj0s2.bkt.clouddn.com/campusForum/2.png)
+![mark](http://cdn.zhuj.top/blog/20190222/zbmJiiyeJ1Ah.png?imageslim)
 
 ​														**论坛门户主界面**
 
-![img](http://otmfpj0s2.bkt.clouddn.com/campusForum/3.png)
+![mark](http://cdn.zhuj.top/blog/20190222/jEUd6wcnvlkx.png?imageslim)
 
 ​														**网络聊天室**
 
-![img](http://otmfpj0s2.bkt.clouddn.com/campusForum/4.png)
+![mark](http://cdn.zhuj.top/blog/20190222/PlO2PrU0uRHc.png?imageslim)
 
 ​													**后台管理界面**
 
-![img](http://otmfpj0s2.bkt.clouddn.com/campusForum/5.png)
+![mark](http://cdn.zhuj.top/blog/20190222/JH72jrpllEyv.png?imageslim)
 
